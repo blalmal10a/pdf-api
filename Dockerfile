@@ -8,6 +8,7 @@ WORKDIR /
 # WORKDIR /usr/src/app
 
 COPY package*.JSON ./
+RUN ls
 RUN npm install
 COPY . .
 CMD ['node', 'index.js']
