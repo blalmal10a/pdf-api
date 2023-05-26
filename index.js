@@ -72,7 +72,7 @@ app.get(`/generate/:filename`, async (req, res) => {
         else html = `
         
         `
-
+        console.log('html is: ', html)
         const browser = await puppeteer.launch({
             args: [
                 '--disable-setuid-sandbox',
@@ -86,33 +86,35 @@ app.get(`/generate/:filename`, async (req, res) => {
                     : puppeteer.executablePath(),
             headless: "new"
         });
-        const page = await browser.newPage();
-        console.log('after new page')
+
+        setTimeout(async () => {
+
+            const page = await browser.newPage();
+            console.log('after new page')
 
 
-        await page.setContent(`${html}`)
+            await page.setContent(`${html}`)
 
-        console.log('after set content')
-        const pdf = await page.pdf({
-            path: "output.pdf",
-            format: "A4",
-            printBackground: true,
-            encoding: "base64"
-        });
-        console.log('before set')
-        res.set({
-            // 'Content-Disposition': 'attachment; filename="output.pdf"',
-            "Content-Type": "application/pdf",
-            "Content-Length": pdf.length
-        });
-        console.log('after set')
+            console.log('after set content')
+            const pdf = await page.pdf({
+                path: "output.pdf",
+                format: "A4",
+                printBackground: true,
+                encoding: "base64"
+            });
+            console.log('before set')
+            res.set({
+                // 'Content-Disposition': 'attachment; filename="output.pdf"',
+                "Content-Type": "application/pdf",
+                "Content-Length": pdf.length
+            });
+            console.log('after set')
 
-        res.send(pdf);
-        console.log('after send')
-        setTimeout(() => {
+            res.send(pdf);
+            console.log('after send')
             browser.close();
-            console.log('close')
-        }, 10000);
+        }, 300);
+
 
     } catch (error) {
         console.log(error.message);
