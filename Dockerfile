@@ -1,14 +1,12 @@
 FROM ghcr.io/puppeteer/puppeteer:19.7.5
 
+
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
+WORKDIR /usr/src/app
 
-WORKDIR /
-# WORKDIR /usr/src/app
-
-COPY package*.JSON ./
-RUN ls
-RUN npm install
+COPY package*.json ./
+RUN npm ci
 COPY . .
-CMD ['node', 'index.js']
+CMD [ "node", "index.js" ]
