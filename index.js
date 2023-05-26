@@ -1,20 +1,31 @@
+const path = require('path');
 const puppeteer = require('puppeteer');
 const express = require('express');
 const app = express();
 
+const router = express.Router()
+// app.get('/', async (req, res) => {
+//     res.sendFile('./index.html')
+//     // res.send({
+//     //     example: 'https://pdf-api-g4eh.onrender.com/YourFileName.pdf?url=https://your_website.com'
+//     // })
+// })
 
 
-
+router.get('/', function (req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+    //__dirname : It will resolve to your project folder.
+});
+app.use('/', router);
 app.get(`/:filename`, async (req, res) => {
 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
 
     try {
-        const keys = Object.keys(res)
-        keys.forEach(element => {
-            console.log(res[element])
+
+        const browser = await puppeteer.launch({
+            headless: 'new'
         });
+        const page = await browser.newPage();
 
 
         await page.goto(`${req.query?.url}`, {
@@ -38,15 +49,10 @@ app.get(`/:filename`, async (req, res) => {
         });
         res.send(pdf);
 
-        // const pdf = await page.pdf({
-        //     path: 'lcs.pdf',
-        //     format: 'letter',
-        //     printBackground: true,
-        //     scale: 1,
-        // });
 
 
 
+        await browser.close();
 
     } catch (error) {
         res.send({
@@ -56,7 +62,6 @@ app.get(`/:filename`, async (req, res) => {
 
     }
 
-    await browser.close();
 });
 app.listen(3000, () => {
     console.log("Server started");
