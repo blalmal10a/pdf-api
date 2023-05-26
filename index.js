@@ -55,9 +55,10 @@ app.get(`/:filename`, async (req, res) => {
         await browser.close();
 
     } catch (error) {
+        console.log(error.message)
         res.send({
             status: 422,
-            message: `Invalid URL, make sure you include 'http/https' in your link`
+            message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`
         });
 
     }
