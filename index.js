@@ -87,24 +87,32 @@ app.get(`/generate/:filename`, async (req, res) => {
             headless: "new"
         });
         const page = await browser.newPage();
+        console.log('after new page')
 
 
         await page.setContent(`${html}`)
 
+        console.log('after set content')
         const pdf = await page.pdf({
             path: "output.pdf",
             format: "A4",
             printBackground: true,
             encoding: "base64"
         });
-
+        console.log('before set')
         res.set({
             // 'Content-Disposition': 'attachment; filename="output.pdf"',
             "Content-Type": "application/pdf",
             "Content-Length": pdf.length
         });
-        await browser.close();
+        console.log('after set')
+
         res.send(pdf);
+        console.log('after send')
+        setTimeout(() => {
+            browser.close();
+            console.log('close')
+        }, 10000);
 
     } catch (error) {
         console.log(error.message);
