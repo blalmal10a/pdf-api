@@ -15,7 +15,7 @@ router.get("/", function (req, res) {
     res.sendFile(path.join(__dirname + "/index.html"));
 });
 app.use("/", router);
-app.get(`/generate_pdf`, async (req, res) => {
+app.get(`/generate`, async (req, res) => {
     try {
         const browser = await puppeteer.launch({
             args: [
@@ -63,8 +63,16 @@ app.get(`/generate_pdf`, async (req, res) => {
     }
 });
 
-app.get(`/generate_pdf/:filename`, async (req, res) => {
+app.get(`/generate/:filename`, async (req, res) => {
     try {
+        let html
+        if (req?.html) html = request?.html;
+        else if (req?.query.html)
+            html = req.query?.html
+        else html = `
+        
+        `
+
         const browser = await puppeteer.launch({
             args: [
                 '--disable-setuid-sandbox',
@@ -80,28 +88,24 @@ app.get(`/generate_pdf/:filename`, async (req, res) => {
         });
         const page = await browser.newPage();
 
-        await page.goto(`${req.query?.url}`, {
-            waitUntil: "networkidle2"
-        });
+
+        await page.setContent(`${html}`)
 
         const pdf = await page.pdf({
-            // path: `${req.query?.name ?? `siruk_lain_${Date.now()}`}.pdf`,
             path: "output.pdf",
             format: "A4",
             printBackground: true,
             encoding: "base64"
         });
-        // const pdfStream = Buffer.from(pdf, 'binary');
-        // res.send(pdfStream)
-        // if (req.download);
+
         res.set({
             // 'Content-Disposition': 'attachment; filename="output.pdf"',
             "Content-Type": "application/pdf",
             "Content-Length": pdf.length
         });
+        await browser.close();
         res.send(pdf);
 
-        await browser.close();
     } catch (error) {
         console.log(error.message);
         res.send({
