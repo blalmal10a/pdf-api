@@ -1,9 +1,9 @@
-const path = require("path");
-const puppeteer = require("puppeteer");
-const express = require("express");
-const app = express();
-require('dotenv').config();
-const router = express.Router();
+const path = require("path")
+const puppeteer = require("puppeteer")
+const express = require("express")
+const app = express()
+require("dotenv").config()
+const router = express.Router()
 // app.get('/', async (req, res) => {
 //     res.sendFile('./index.html')
 //     // res.send({
@@ -12,118 +12,101 @@ const router = express.Router();
 // })
 
 router.get("/", function (req, res) {
-    res.sendFile(path.join(__dirname + "/index.html"));
-});
-app.use("/", router);
+	res.sendFile(path.join(__dirname + "/index.html"))
+})
+app.use("/", router)
 app.get(`/generate`, async (req, res) => {
-    try {
-        const browser = await puppeteer.launch({
-            args: [
-                '--disable-setuid-sandbox',
-                '--no-sandbox',
-                '--single-process',
-                'no-zygote',
-            ],
-            executablePath:
-                process.env?.NODE_ENV === "production"
-                    ? process.env.PUPPETEER_EXECUTABLE_PATH
-                    : puppeteer.executablePath(),
-            headless: "new"
-        });
-        const page = await browser.newPage();
+	try {
+		const browser = await puppeteer.launch({
+			args: [
+				"--disable-setuid-sandbox",
+				"--no-sandbox",
+				"--single-process",
+				"no-zygote",
+			],
+			executablePath:
+				process.env?.NODE_ENV === "production"
+					? process.env.PUPPETEER_EXECUTABLE_PATH
+					: puppeteer.executablePath(),
+			headless: "new",
+		})
+		const page = await browser.newPage()
 
-        await page.goto(`${req.query?.url}`, {
-            waitUntil: "networkidle2"
-        });
+		await page.goto(`${req.query?.url}`, {
+			waitUntil: "networkidle2",
+		})
 
-        const pdf = await page.pdf({
-            // path: `${req.query?.name ?? `siruk_lain_${Date.now()}`}.pdf`,
-            path: "output.pdf",
-            format: "A4",
-            printBackground: true,
-            encoding: "base64"
-        });
-        // const pdfStream = Buffer.from(pdf, 'binary');
-        // res.send(pdfStream)
-        // if (req.download);
-        res.set({
-            // 'Content-Disposition': 'attachment; filename="output.pdf"',
-            "Content-Type": "application/pdf",
-            "Content-Length": pdf.length
-        });
-        res.send(pdf);
+		// const pdf = await page.pdf({
+		// 	// path: `${req.query?.name ?? `siruk_lain_${Date.now()}`}.pdf`,
+		// 	// path: "output.pdf",
+		// 	format: "A4",
+		// 	printBackground: true,
+		// 	encoding: "base64",
+		// })
+		const pdfStream = Buffer.from(pdf, "binary")
+		res.send(pdfStream)
+		// // if (req.download);
+		// res.set({
+		// 	// 'Content-Disposition': 'attachment; filename="output.pdf"',
+		// 	"Content-Type": "application/pdf",
+		// 	"Content-Length": pdf.length,
+		// })
+		// res.send(pdf)
 
-        await browser.close();
-    } catch (error) {
-        console.log(error.message);
-        res.send({
-            status: 422,
-            message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`
-        });
-    }
-});
+		await browser.close()
+	} catch (error) {
+		console.log(error.message)
+		res.send({
+			status: 422,
+			message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`,
+		})
+	}
+})
 
 app.get(`/generate/:filename`, async (req, res) => {
-    try {
-        let html
-        if (req?.html) html = request?.html;
-        else if (req?.query.html)
-            html = req.query?.html
-        else html = `
+	try {
+		let html
+		if (req?.html) html = request?.html
+		else if (req?.query.html) html = req.query?.html
+		else
+			html = `
         
         `
-        console.log('html is: ', html)
-        const browser = await puppeteer.launch({
-            args: [
-                '--disable-setuid-sandbox',
-                '--no-sandbox',
-                '--single-process',
-                'no-zygote',
-            ],
-            executablePath:
-                process.env?.NODE_ENV === "production"
-                    ? process.env.PUPPETEER_EXECUTABLE_PATH
-                    : puppeteer.executablePath(),
-            headless: "new"
-        });
 
-        setTimeout(async () => {
+		const browser = await puppeteer.launch({
+			args: [
+				"--disable-setuid-sandbox",
+				"--no-sandbox",
+				"--single-process",
+				"no-zygote",
+			],
+			executablePath:
+				process.env?.NODE_ENV === "production"
+					? process.env.PUPPETEER_EXECUTABLE_PATH
+					: puppeteer.executablePath(),
+			headless: "new",
+		})
 
-            const page = await browser.newPage();
-            console.log('after new page')
+		const page = await browser.newPage()
 
+		await page.setContent(`${html}`)
 
-            await page.setContent(`${html}`)
+		const pdf = await page.pdf()
 
-            console.log('after set content')
-            const pdf = await page.pdf({
-                path: "output.pdf",
-                format: "A4",
-                printBackground: true,
-                encoding: "base64"
-            });
-            console.log('before set')
-            res.set({
-                // 'Content-Disposition': 'attachment; filename="output.pdf"',
-                "Content-Type": "application/pdf",
-                "Content-Length": pdf.length
-            });
-            console.log('after set')
+		browser.close()
+		res.set({
+			"Content-Type": "application/pdf",
+		})
 
-            res.send(pdf);
-            console.log('after send')
-            browser.close();
-        }, 300);
-
-
-    } catch (error) {
-        console.log(error.message);
-        res.send({
-            status: 422,
-            message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`
-        });
-    }
-});
+		res.send(pdf)
+	} catch (error) {
+		console.log(error.message)
+		res.send({
+			status: 422,
+			message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`,
+		})
+	}
+})
 
 // app.get(`/test`, async (req, res) => {
 //     try {
@@ -174,5 +157,5 @@ app.get(`/generate/:filename`, async (req, res) => {
 //     }
 // });
 app.listen(3000, () => {
-    console.log("Server started");
-});
+	console.log("Server started")
+})
