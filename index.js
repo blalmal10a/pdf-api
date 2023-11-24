@@ -1,161 +1,21 @@
-const path = require("path")
-const puppeteer = require("puppeteer")
 const express = require("express")
+const {scrapeLogic} = require("./scrape-logic")
 const app = express()
-require("dotenv").config()
-const router = express.Router()
-// app.get('/', async (req, res) => {
-//     res.sendFile('./index.html')
-//     // res.send({
-//     //     example: 'https://pdf-api-g4eh.onrender.com/YourFileName.pdf?url=https://your_website.com'
-//     // })
-// })
+const path = require("path")
 
-router.get("/", function (req, res) {
-	res.sendFile(path.join(__dirname + "/index.html"))
+const PORT = process.env.PORT || 4000
+
+app.get("/:filename", (req, res) => {
+	scrapeLogic(req, res)
 })
-app.use("/", router)
-app.get(`/generate`, async (req, res) => {
-	try {
-		const browser = await puppeteer.launch({
-			args: [
-				"--disable-setuid-sandbox",
-				"--no-sandbox",
-				"--single-process",
-				"no-zygote",
-			],
-			executablePath:
-				process.env?.NODE_ENV === "production"
-					? process.env.PUPPETEER_EXECUTABLE_PATH
-					: puppeteer.executablePath(),
-			headless: "new",
-		})
-		const page = await browser.newPage()
-
-		await page.goto(`${req.query?.url}`, {
-			waitUntil: "networkidle2",
-		})
-
-		// const pdf = await page.pdf({
-		// 	// path: `${req.query?.name ?? `siruk_lain_${Date.now()}`}.pdf`,
-		// 	// path: "output.pdf",
-		// 	format: "A4",
-		// 	printBackground: true,
-		// 	encoding: "base64",
-		// })
-		const pdfStream = Buffer.from(pdf, "binary")
-		res.send(pdfStream)
-		// // if (req.download);
-		// res.set({
-		// 	// 'Content-Disposition': 'attachment; filename="output.pdf"',
-		// 	"Content-Type": "application/pdf",
-		// 	"Content-Length": pdf.length,
-		// })
-		// res.send(pdf)
-
-		await browser.close()
-	} catch (error) {
-		console.log(error.message)
-		res.send({
-			status: 422,
-			message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`,
-		})
-	}
+app.post("/:filename", (req, res) => {
+	scrapeLogic(req, res)
 })
 
-app.get(`/generate/:filename`, async (req, res) => {
-	try {
-		let html
-		if (req?.html) html = request?.html
-		else if (req?.query.html) html = req.query?.html
-		else
-			html = `
-        
-        `
-
-		const browser = await puppeteer.launch({
-			args: [
-				"--disable-setuid-sandbox",
-				"--no-sandbox",
-				"--single-process",
-				"no-zygote",
-			],
-			executablePath:
-				process.env?.NODE_ENV === "production"
-					? process.env.PUPPETEER_EXECUTABLE_PATH
-					: puppeteer.executablePath(),
-			headless: "new",
-		})
-
-		const page = await browser.newPage()
-
-		await page.setContent(`${html}`)
-
-		const pdf = await page.pdf()
-
-		browser.close()
-		res.set({
-			"Content-Type": "application/pdf",
-		})
-
-		res.send(pdf)
-	} catch (error) {
-		console.log(error.message)
-		res.send({
-			status: 422,
-			message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`,
-		})
-	}
+app.get("/", (req, res) => {
+	res.sendFile(path.join(`${__dirname}/index.html`))
 })
 
-// app.get(`/test`, async (req, res) => {
-//     try {
-
-//         const browser = await puppeteer.launch({
-//             args: [
-//                 '--disable-setuid-sandbox',
-//                 '--no-sandbox',
-//                 '--single-process',
-//                 'no-zygote',
-//             ],
-//             executablePath: '/usr/bin/google-chrome-stable',
-//             // process.env?.NODE_ENV === "production"
-//             //     ? '/usr/bin/google-chrome-stable'
-//             //     : puppeteer.executablePath(),
-//             headless: "new"
-//         });
-//         const page = await browser.newPage();
-
-//         await page.goto(`https://sirukla.in`, {
-//             waitUntil: "networkidle2"
-//         });
-
-//         const pdf = await page.pdf({
-//             // path: `${req.query?.name ?? `siruk_lain_${Date.now()}`}.pdf`,
-//             path: "output.pdf",
-//             format: "A4",
-//             printBackground: true,
-//             encoding: "base64"
-//         });
-//         // const pdfStream = Buffer.from(pdf, 'binary');
-//         // res.send(pdfStream)
-//         // if (req.download);
-//         res.set({
-//             // 'Content-Disposition': 'attachment; filename="output.pdf"',
-//             "Content-Type": "application/pdf",
-//             "Content-Length": pdf.length
-//         });
-//         res.send(pdf);
-
-//         await browser.close();
-//     } catch (error) {
-//         console.log(error.message);
-//         res.send({
-//             status: 422,
-//             message: `Invalid URL, make sure you include 'http/https' in your link \n error message is: ${error.message}`
-//         });
-//     }
-// });
-app.listen(3000, () => {
-	console.log("Server started")
+app.listen(PORT, () => {
+	console.log(`Listening on port ${PORT}`)
 })
