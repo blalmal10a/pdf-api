@@ -18,7 +18,7 @@ const scrapeLogic = async (req, res) => {
 	try {
 		const page = await browser.newPage()
 		const req_url = req.query.url
-		const req_html = req.query.html
+		const req_html = req.query.html ?? req.body.html
 		const default_value = `<html>
     <head>
       <title>Hriaptui</title>
