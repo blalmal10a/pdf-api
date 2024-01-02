@@ -9,6 +9,10 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 const PORT = process.env.PORT || 4000
 
+app.get("/demo", (req, res) => {
+	res.sendFile(path.join(`${__dirname}/test.html`))
+})
+
 app.get("/:filename", (req, res) => {
 	scrapeLogic(req, res)
 })
